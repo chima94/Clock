@@ -5,4 +5,10 @@
     <string name="clock">clock</string>
     <string name="timer">timer</string>
     <string name="stopwatch">stopwatch</string>
+    <string name="topbar_alarm">Alarm</string>
+    <string name="set_alarm">set alarm</string>
+    <string name="bedtime_topbar">BedTime</string>
+    <string name="clock_topbar">Clock</string>
+    <string name="stopwatch_topbar">StopWatch</string>
+    <string name="timer_topbar">Timer</string>
 </resources>
