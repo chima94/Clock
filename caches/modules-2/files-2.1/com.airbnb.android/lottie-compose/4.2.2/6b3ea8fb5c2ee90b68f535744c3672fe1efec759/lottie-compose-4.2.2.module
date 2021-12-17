@@ -1,0 +1,104 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.airbnb.android",
+    "module": "lottie-compose",
+    "version": "4.2.2",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "releaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.airbnb.android",
+          "module": "lottie",
+          "version": {
+            "requires": "4.2.2"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.5.30"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "lottie-compose-4.2.2.aar",
+          "url": "lottie-compose-4.2.2.aar",
+          "size": 113640,
+          "sha512": "5e57ce58d87f47e6b24741f248738c9f2a27ceea3422a8f7b6629a836b85fd1bb9f9be034d321c11865827be9ea50c380de7bead4d58cf4bbc88ad118ffb4b10",
+          "sha256": "9da4bf76e832aadec19ff875ac656c3eaa876b0e61d55416b268554453107ab7",
+          "sha1": "5b470f59cf6a64aa16662f6284158a1f8c81ddb9",
+          "md5": "90a57db1a2cbe00bf8b2a181b253674d"
+        }
+      ]
+    },
+    {
+      "name": "releaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.airbnb.android",
+          "module": "lottie",
+          "version": {
+            "requires": "4.2.2"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.5.30"
+          }
+        },
+        {
+          "group": "androidx.compose.foundation",
+          "module": "foundation",
+          "version": {
+            "requires": "1.0.3"
+          }
+        },
+        {
+          "group": "androidx.compose.ui",
+          "module": "ui",
+          "version": {
+            "requires": "1.0.3"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "lottie-compose-4.2.2.aar",
+          "url": "lottie-compose-4.2.2.aar",
+          "size": 113640,
+          "sha512": "5e57ce58d87f47e6b24741f248738c9f2a27ceea3422a8f7b6629a836b85fd1bb9f9be034d321c11865827be9ea50c380de7bead4d58cf4bbc88ad118ffb4b10",
+          "sha256": "9da4bf76e832aadec19ff875ac656c3eaa876b0e61d55416b268554453107ab7",
+          "sha1": "5b470f59cf6a64aa16662f6284158a1f8c81ddb9",
+          "md5": "90a57db1a2cbe00bf8b2a181b253674d"
+        }
+      ]
+    }
+  ]
+}

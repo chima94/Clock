@@ -1,0 +1,75 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.airbnb.android",
+    "module": "lottie",
+    "version": "3.6.1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "6.8.2",
+      "buildId": "utrkno2hwvaehbhbq5nvvklycm"
+    }
+  },
+  "variants": [
+    {
+      "name": "releaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "lottie-3.6.1.aar",
+          "url": "lottie-3.6.1.aar",
+          "size": 377227,
+          "sha512": "d88a81cc3bf8a94da5055d71f9bc060bd9a0d4baa548dcc0ae595ec78b7e9fb95cc81b4de529605a6dfe757a9d0b0a4387a3b1ff8f311fbd76654307ee3f50f4",
+          "sha256": "1da61fb6266dd41b49608a0a7c356ff6be1e132722d8c11cb9dd114a201e9f5b",
+          "sha1": "e547a1621dbfe09a4ea265feb35b75bbdb7a9d67",
+          "md5": "e9a00e6b8cf0ebf2e3b86d354c1e58f8"
+        }
+      ]
+    },
+    {
+      "name": "releaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "androidx.appcompat",
+          "module": "appcompat",
+          "version": {
+            "requires": "1.0.0"
+          }
+        },
+        {
+          "group": "com.squareup.okio",
+          "module": "okio",
+          "version": {
+            "requires": "1.17.4"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "lottie-3.6.1.aar",
+          "url": "lottie-3.6.1.aar",
+          "size": 377227,
+          "sha512": "d88a81cc3bf8a94da5055d71f9bc060bd9a0d4baa548dcc0ae595ec78b7e9fb95cc81b4de529605a6dfe757a9d0b0a4387a3b1ff8f311fbd76654307ee3f50f4",
+          "sha256": "1da61fb6266dd41b49608a0a7c356ff6be1e132722d8c11cb9dd114a201e9f5b",
+          "sha1": "e547a1621dbfe09a4ea265feb35b75bbdb7a9d67",
+          "md5": "e9a00e6b8cf0ebf2e3b86d354c1e58f8"
+        }
+      ]
+    }
+  ]
+}
