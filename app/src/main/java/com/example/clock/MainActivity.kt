@@ -17,7 +17,9 @@ import com.example.clock.navigation.addBottomNavigationDestions
 import com.example.clock.navigation.bottomnavigation.AlarmRoute
 import com.example.clock.navigation.bottomnavigation.AppBottomNavigation
 import com.example.clock.ui.theme.ClockTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
