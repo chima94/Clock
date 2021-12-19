@@ -2,7 +2,9 @@ package com.example.clock.ui.main.alarm
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.clock.business.datasources.alarm.AlarmDao
+import com.example.clock.business.datasources.alarm.AlarmEntity
 import com.example.clock.business.model.SetAlarm
 import com.example.clock.business.model.WeekDays
 import com.example.clock.business.model.toAlarmEntity
@@ -20,12 +22,18 @@ class AlarmViewModel @Inject constructor(
     val alarm = alarmDao.getAllAlarm()
 
 
-    fun insertAlarm(alarm: SetAlarm){
+    fun insertAlarm(alarmEntity: AlarmEntity){
         viewModelScope.launch {
-            alarmDao.insertAlarm(alarmEntity = alarm.toAlarmEntity())
+            alarmDao.insertAlarm(alarmEntity = alarmEntity)
         }
     }
 
+
+    fun deleteAlarm(millis: Long){
+        viewModelScope.launch {
+            alarmDao.deleteAlarm(millis)
+        }
+    }
 
 
     fun weekdays(): List<WeekDays> =

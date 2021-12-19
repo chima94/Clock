@@ -3,11 +3,11 @@ package com.example.clock.business.model
 import com.example.clock.business.datasources.alarm.AlarmEntity
 
 data class SetAlarm(
-    val id: Int = -1,
-    val millis: Long,
-    val timeState: Int = 0,
-    val isSetAlarm: Boolean,
-    val repeat: List<WeekDays>
+    var millis: Long = -1,
+    var timeState: Int = 0,
+    var isSetAlarm: Boolean = true,
+    var label: String = "",
+    var repeat: List<WeekDays> = emptyList()
 )
 
 data class WeekDays(
@@ -21,6 +21,18 @@ fun SetAlarm.toAlarmEntity(): AlarmEntity{
         millis = millis,
         timeState = timeState,
         isSetAlarm = isSetAlarm,
+        label = label,
+        repeat = repeat
+    )
+}
+
+
+fun AlarmEntity.toSetAlarm(): SetAlarm{
+    return SetAlarm(
+        millis = millis,
+        timeState = timeState,
+        isSetAlarm = isSetAlarm,
+        label = label,
         repeat = repeat
     )
 }

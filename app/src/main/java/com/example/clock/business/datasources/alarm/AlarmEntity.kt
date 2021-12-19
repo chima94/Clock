@@ -18,10 +18,16 @@ data class AlarmEntity(
     val timeState: Int,
 
     @ColumnInfo(name = "isSetAlarm")
-    val isSetAlarm: Boolean,
+    var isSetAlarm: Boolean,
+
+    @ColumnInfo(name = "label")
+    val label : String,
 
     @ColumnInfo(name = "repeat")
-    val repeat: List<WeekDays>
+    val repeat: List<WeekDays>,
+
+    @ColumnInfo(name = "expanded")
+    var expanded: Boolean = true
 )
 
 

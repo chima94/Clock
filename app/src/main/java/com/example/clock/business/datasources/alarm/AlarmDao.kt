@@ -14,4 +14,7 @@ interface AlarmDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAlarm(alarmEntity: AlarmEntity)
+
+    @Query("DELETE FROM alarm_table WHERE millis =:millis")
+    suspend fun deleteAlarm(millis: Long)
 }

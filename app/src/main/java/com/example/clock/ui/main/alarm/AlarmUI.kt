@@ -3,8 +3,6 @@ package com.example.clock.ui.main.alarm
 import android.app.TimePickerDialog
 import android.content.Context
 import android.text.format.DateFormat
-import android.util.Log
-import android.util.Log.i
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
@@ -29,7 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,9 +35,9 @@ import androidx.lifecycle.flowWithLifecycle
 import com.example.clock.R
 import com.example.clock.business.datasources.alarm.AlarmEntity
 import com.example.clock.business.model.SetAlarm
+import com.example.clock.business.model.toAlarmEntity
+import com.example.clock.business.model.toSetAlarm
 import com.example.clock.ui.component.AppBar
-import timber.log.Timber
-import timber.log.Timber.i
 import java.util.*
 
 
@@ -54,13 +51,20 @@ fun AlarmUI(){
         alarmViewModel.alarm.flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED)
     }
 
-    val alarm by locationFlowLifecycleAware.collectAsState(initial = emptyList())
-    Timber.i("Size: ${alarm.size}")
+    val alarmEntity by locationFlowLifecycleAware.collectAsState(initial = emptyList())
+    var alarm by remember { mutableStateOf(SetAlarm())}
 
-    AlarmUIScaffold(openDialog, alarm){action ->
+    AlarmUIScaffold(openDialog, alarmEntity = alarmEntity){ action ->
         when(action){
             is AlarmUIActions.OpenDialog ->{
                 openDialog = !openDialog
+                if(action.alarmEntity != null){
+                    alarm =  action.alarmEntity.toSetAlarm()
+                }
+                if(action.label.isNotEmpty()){
+                    alarm.label = action.label
+                    alarmViewModel.insertAlarm(alarm.toAlarmEntity())
+                }
             }
             is AlarmUIActions.SetAlarm ->{
                 val alarm = SetAlarm(
@@ -69,7 +73,13 @@ fun AlarmUI(){
                     isSetAlarm = true,
                     repeat = alarmViewModel.weekdays()
                 )
-                alarmViewModel.insertAlarm(alarm)
+                alarmViewModel.insertAlarm(alarm.toAlarmEntity())
+            }
+            is AlarmUIActions.UpdateAlarm ->{
+                alarmViewModel.insertAlarm(action.alarmEntity)
+            }
+            is AlarmUIActions.DeleteAlarm ->{
+                alarmViewModel.deleteAlarm(action.millis)
             }
         }
     }
@@ -88,38 +98,59 @@ private fun AlarmUIScaffold(
             AppBar(topAppBarText = stringResource(R.string.topbar_alarm))
         },
         content = {
-            Box(modifier = Modifier.fillMaxSize()){
-               SetTime(
-                   modifier = Modifier
-                       .align(Alignment.BottomCenter)
-                       .padding(bottom = 74.dp),
-                   action = action
-               )
-                Column(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-                ) {
-                    alarmEntity.forEach { alarmEntity ->
-                        Alarm(
-                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                            alarmEntity = alarmEntity,
-                            action = action
-                        )
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)){
+                    LazyColumn(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 120.dp)
+                    ) {
+                        items(alarmEntity){alarm->
+                            Alarm(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 4.dp),
+                                alarmEntity = alarm,
+                                action = action
+                            )
+                        }
                     }
-                }
                 LabelDialog(openDialog = openDialog, action = action)
+                SetTime(
+                    modifier = Modifier
+                        .padding(bottom = 74.dp)
+                        .align(Alignment.BottomCenter),
+                    action = action
+                )
+                EmptyScreen(
+                    alarmEntity = alarmEntity,
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
         }
     )
 }
 
 
+@Composable
+private fun EmptyScreen(alarmEntity: List<AlarmEntity>, modifier: Modifier = Modifier){
+    if(alarmEntity.isEmpty()){
+        Box(modifier = modifier){
+            Icon(
+                imageVector = Icons.Outlined.Alarm,
+                contentDescription = "Empty",
+                modifier = Modifier.size(200.dp),
+                tint = Color.Gray
+            )
+        }
+    }
+}
 
 
 
 @Composable
 private fun SetTime(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     action: (AlarmUIActions) -> Unit
 ){
     val context = LocalContext.current
@@ -147,16 +178,28 @@ private fun Alarm(
     alarmEntity: AlarmEntity,
     action: (AlarmUIActions) -> Unit
 ){
-    var expanded by remember{ mutableStateOf(false)}
-    var checked by remember { mutableStateOf(false)}
-    var checkBox by remember{ mutableStateOf(false)}
+    var expanded by remember{ mutableStateOf(alarmEntity.expanded)}
+    var alarmChecked by remember { mutableStateOf(alarmEntity.isSetAlarm)}
+    var repeat by remember{ mutableStateOf(false)}
     val am_pm = if(alarmEntity.timeState == 0) "AM" else "PM"
+    val label = alarmEntity.label.capitalize()
+    val currentAlarm = if(alarmEntity.label.isNotEmpty()) "${currentTime(alarmEntity.millis)} . $label" else currentTime(alarmEntity.millis)
+    val labelDropdown = label.ifEmpty { "Label" }
+    val color = if(alarmChecked) MaterialTheme.colors.secondary else Color.Unspecified
 
     Card(
         modifier = modifier,
         elevation = 0.dp
     ) {
-        Column(Modifier.clickable { expanded = !expanded }) {
+        Column(Modifier
+            .clickable {
+            expanded = !expanded
+            if(alarmEntity.expanded){
+                alarmEntity.expanded = expanded
+                action(AlarmUIActions.UpdateAlarm(alarmEntity))
+            }
+            }
+        ) {
                 Box(modifier = modifier) {
                     Row {
                         Text(
@@ -164,19 +207,25 @@ private fun Alarm(
                             fontSize = 50.sp,
                             modifier = Modifier
                                 .padding(end = 4.dp)
-                                .alignByBaseline()
+                                .alignByBaseline(),
+                            color = color
                         )
                         Text(
                             text = am_pm,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.W400,
                             modifier = Modifier
-                                .alignByBaseline()
+                                .alignByBaseline(),
+                            color = color
                         )
                     }
                    Switch(
-                       checked = checked,
-                       onCheckedChange = {checked = it},
+                       checked = alarmChecked,
+                       onCheckedChange = {
+                           alarmChecked = !alarmChecked
+                           alarmEntity.isSetAlarm = alarmChecked
+                           action(AlarmUIActions.UpdateAlarm(alarmEntity = alarmEntity))
+                       },
                        modifier = Modifier.align(Alignment.CenterEnd)
                    )
                 }
@@ -185,124 +234,147 @@ private fun Alarm(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = modifier.padding(top = 12.dp, start = 8.dp, bottom = 8.dp)
                 ){
-                    Text(text = "Tomorrow")
+                    Text(
+                        text = currentAlarm,
+                        fontWeight = FontWeight.W500
+                    )
                     Icon(
                         imageVector = Icons.Outlined.KeyboardArrowDown,
                         contentDescription = "dropdown"
                     )
                 }
             }
+
             AnimatedVisibility(expanded) {
-                    LazyColumn(modifier = modifier.padding(top = 4.dp)) {
-                        item {
-                            Column {
-                                AlarmExpandRow {
-                                    Checkbox(
-                                        checked = checkBox,
-                                        onCheckedChange = { checkBox = it },
-                                        modifier = Modifier.padding(8.dp)
-                                    )
-                                    Text(
-                                        text = "Repeat",
-                                        modifier = Modifier.padding(8.dp)
-                                    )
-                                }
-                                WeekDaysRow(checkBox = checkBox)
-                            }
-                        }
-                        item {
-                            Box(modifier = modifier) {
-                                AlarmExpandRow {
-                                    Icon(
-                                        imageVector = Icons.Outlined.NotificationsActive,
-                                        contentDescription = "ringtone",
-                                        modifier = Modifier.padding(8.dp)
-                                    )
-                                    Text(
-                                        text = "Argon",
-                                        modifier = Modifier.padding(8.dp)
-                                    )
-                                }
-                                Row(modifier = Modifier.align(Alignment.CenterEnd)) {
-                                    Checkbox(
-                                        checked = checkBox,
-                                        onCheckedChange = { checkBox = it },
-                                        modifier = Modifier.padding(8.dp)
-                                    )
-                                    Text(
-                                        text = "Vibrate",
-                                        modifier = Modifier.padding(8.dp)
-                                    )
-                                }
-                            }
-                        }
-                        item {
-                            AlarmExpandRow {
+                Column(modifier = modifier.padding(top = 4.dp)){
+                    AlarmExpandRow {
+                        Checkbox(
+                            checked = repeat,
+                            onCheckedChange = { repeat = it },
+                            modifier = Modifier.padding(start = 14.dp)
+                        )
+                        Text(
+                            text = "Repeat",
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(start = 12.dp)
+                        )
+                    }
+                    WeekDaysRow(checkBox = repeat, alarmEntity = alarmEntity)
+
+                    Box(modifier = modifier) {
+                        AlarmExpandRow {
+                            IconButton(onClick = { /*TODO*/ }) {
                                 Icon(
-                                    imageVector = Icons.Outlined.Label,
-                                    contentDescription = "label",
-                                    modifier = Modifier
-                                        .padding(8.dp)
-                                        .clickable { action(AlarmUIActions.OpenDialog()) }
-                                )
-                                Text(
-                                    text = "Label",
-                                    modifier = Modifier
-                                        .padding(8.dp)
-                                        .clickable { action(AlarmUIActions.OpenDialog()) }
+                                    imageVector = Icons.Outlined.NotificationsActive,
+                                    contentDescription = "ringtone",
                                 )
                             }
-                        }
-                        item {
-                            Box(modifier = modifier) {
-                                AlarmExpandRow {
-                                    Icon(
-                                        imageVector = Icons.Filled.BubbleChart,
-                                        contentDescription = "Google Assistant Routine",
-                                        modifier = Modifier.padding(8.dp)
-                                    )
-                                    Text(
-                                        text = "Google Assistant Routine",
-                                        modifier = Modifier.padding(8.dp)
-                                    )
-                                }
-                                Icon(
-                                    imageVector = Icons.Outlined.AddCircleOutline,
-                                    contentDescription = "add",
-                                    modifier = Modifier
-                                        .align(Alignment.CenterEnd)
-                                        .padding(end = 4.dp)
-                                )
-                            }
-                        }
-                        item {
-                            Divider(
-                                Modifier
-                                    .padding(4.dp)
-                                    .height(1.dp)
+                            Text(
+                                text = "Argon",
+                                modifier = Modifier
+                                    .padding(top = 12.dp)
                             )
                         }
-                        item {
-                            Box(modifier = modifier) {
-                                AlarmExpandRow {
-                                    Icon(
-                                        imageVector = Icons.Filled.Delete,
-                                        contentDescription = "Delete",
-                                        modifier = Modifier.padding(8.dp)
-                                    )
-                                    Text(
-                                        text = "Delete",
-                                        modifier = Modifier.padding(8.dp)
-                                    )
-                                }
-                                Icon(
-                                    imageVector = Icons.Outlined.KeyboardArrowUp,
-                                    contentDescription = "up",
-                                    modifier = Modifier.align(Alignment.CenterEnd)
-                                )
-                            }
+                        Row(modifier = Modifier
+                            .padding(top = 12.dp)
+                            .align(Alignment.CenterEnd)
+                        ) {
+                            Checkbox(
+                                checked = repeat,
+                                onCheckedChange = { repeat = it },
+                                modifier = Modifier.padding(8.dp)
+                            )
+                            Text(
+                                text = "Vibrate",
+                                modifier = Modifier.padding(8.dp)
+                            )
                         }
                     }
+
+                    AlarmExpandRow {
+                        IconButton(
+                            onClick = {
+                                action(AlarmUIActions.OpenDialog(alarmEntity = alarmEntity))
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Label,
+                                contentDescription = "label",
+
+                            )
+                        }
+                        Text(
+                            text = labelDropdown,
+                            modifier = Modifier
+                                .clickable { action(AlarmUIActions.OpenDialog(alarmEntity = alarmEntity)) }
+                                .align(Alignment.CenterHorizontally)
+                        )
+                    }
+
+                    Box(modifier = modifier) {
+                        AlarmExpandRow {
+                            IconButton(onClick = { /*TODO*/ }) {
+                                Icon(
+                                    imageVector = Icons.Filled.BubbleChart,
+                                    contentDescription = "Google Assistant Routine",
+                                    modifier = Modifier.padding(8.dp)
+                                )
+                            }
+                            Text(
+                                text = "Google Assistant Routine",
+                                modifier = Modifier
+                                    .padding(top = 12.dp)
+                                    .align(Alignment.Center)
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Outlined.AddCircleOutline,
+                            contentDescription = "add",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 4.dp, bottom = 4.dp)
+                        )
+                    }
+
+                    Divider(
+                        Modifier
+                            .padding(4.dp)
+                            .height(1.dp)
+                    )
+
+
+                    Box(modifier = modifier.padding(bottom = 16.dp)) {
+                        AlarmExpandRow {
+                           IconButton(
+                               onClick = {
+                                   action(AlarmUIActions.DeleteAlarm(alarmEntity.millis))
+                               }
+                           ) {
+                               Icon(
+                                   imageVector = Icons.Filled.Delete,
+                                   contentDescription = "Delete",
+                                   modifier = Modifier.padding(8.dp)
+                               )
+                           }
+                            Text(
+                                text = "Delete",
+                                modifier = Modifier
+                                    .padding(top = 14.dp)
+                                    .clickable { action(AlarmUIActions.DeleteAlarm(alarmEntity.millis)) }
+
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Outlined.KeyboardArrowUp,
+                            contentDescription = "up",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(top = 12.dp)
+                        )
+                    }
+
+                }
                 }
             }
     }
@@ -330,11 +402,11 @@ private fun AlarmExpandRow(
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-private fun WeekDaysRow(checkBox: Boolean){
+private fun WeekDaysRow(alarmEntity: AlarmEntity, checkBox: Boolean){
     AnimatedVisibility(checkBox) {
         LazyRow(modifier = Modifier.padding(top = 4.dp, start = 8.dp)) {
-            items(weekdays){day ->
-                WeekDays(day = day)
+            items(alarmEntity.repeat){weekdays ->
+                WeekDays(day = weekdays.day)
             }
         }
     }
@@ -428,4 +500,10 @@ private fun setTimer(context: Context, callback: (millis: Long, Int)->Unit){
 
 private fun convertDate(timeInMillis: Long): String = DateFormat.format("hh:mm", timeInMillis).toString()
 
-private val weekdays = listOf("S", "M", "T", "W", "T", "F", "S")
+private fun currentTime(timeInMillis: Long): String{
+    return if(System.currentTimeMillis() < timeInMillis){
+        "Today"
+    }else{
+        "Tomorrow"
+    }
+}
