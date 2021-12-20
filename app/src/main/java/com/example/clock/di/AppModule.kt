@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.example.clock.business.datasources.AppDatabase
 import com.example.clock.business.datasources.AppDatabase.Companion.DATABASE_NAME
 import com.example.clock.business.datasources.alarm.AlarmDao
+import com.example.clock.service.AlarmService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -29,5 +30,11 @@ object AppModule {
     @Provides
     fun provideAlarmDao(db: AppDatabase): AlarmDao{
         return db.getAlarmDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideAlarmService(@ApplicationContext context: Context): AlarmService{
+        return AlarmService(context = context)
     }
 }

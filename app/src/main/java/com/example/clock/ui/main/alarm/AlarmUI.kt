@@ -38,6 +38,7 @@ import com.example.clock.business.model.SetAlarm
 import com.example.clock.business.model.toAlarmEntity
 import com.example.clock.business.model.toSetAlarm
 import com.example.clock.ui.component.AppBar
+import timber.log.Timber
 import java.util.*
 
 
@@ -66,7 +67,7 @@ fun AlarmUI(){
                     alarmViewModel.insertAlarm(alarm.toAlarmEntity())
                 }
             }
-            is AlarmUIActions.SetAlarm ->{
+            is AlarmUIActions.TurnOf_On_Alarm ->{
                 val alarm = SetAlarm(
                     millis = action.millis,
                     timeState = action.am_pm,
@@ -80,6 +81,9 @@ fun AlarmUI(){
             }
             is AlarmUIActions.DeleteAlarm ->{
                 alarmViewModel.deleteAlarm(action.millis)
+            }
+            is AlarmUIActions.SetAlarm ->{
+                alarmViewModel.setAlarm(action.alarmEntity.millis)
             }
         }
     }
@@ -158,7 +162,7 @@ private fun SetTime(
     FloatingActionButton(
         onClick = {
             setTimer(context = context){millis, am_pm ->
-                action(AlarmUIActions.SetAlarm(millis, am_pm))
+                action(AlarmUIActions.TurnOf_On_Alarm(millis, am_pm))
             }
         },
         modifier = modifier
@@ -186,6 +190,10 @@ private fun Alarm(
     val currentAlarm = if(alarmEntity.label.isNotEmpty()) "${currentTime(alarmEntity.millis)} . $label" else currentTime(alarmEntity.millis)
     val labelDropdown = label.ifEmpty { "Label" }
     val color = if(alarmChecked) MaterialTheme.colors.secondary else Color.Unspecified
+
+    if(alarmChecked){
+        action(AlarmUIActions.SetAlarm(alarmEntity))
+    }
 
     Card(
         modifier = modifier,

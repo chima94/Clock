@@ -8,14 +8,17 @@ import com.example.clock.business.datasources.alarm.AlarmEntity
 import com.example.clock.business.model.SetAlarm
 import com.example.clock.business.model.WeekDays
 import com.example.clock.business.model.toAlarmEntity
+import com.example.clock.service.AlarmService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
 class AlarmViewModel @Inject constructor(
-    private val alarmDao: AlarmDao
+    private val alarmDao: AlarmDao,
+    private val alarmService: AlarmService
 ): ViewModel(){
 
 
@@ -35,6 +38,12 @@ class AlarmViewModel @Inject constructor(
         }
     }
 
+
+    fun setAlarm(millis: Long){
+        viewModelScope.launch(Dispatchers.Main){
+            alarmService.setRepetitiveAlarm(millis)
+        }
+    }
 
     fun weekdays(): List<WeekDays> =
         listOf(
